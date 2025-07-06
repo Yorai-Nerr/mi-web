@@ -1,338 +1,234 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gestor de Cuentas con Fondo Personalizado</title>
-<style>
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #eee;
-  }
-  #welcomeSection {
-    position: relative;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    overflow: hidden;
-  }
-  #welcomeBackground, #welcomeVideo {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: -1;
-    display: none;
-  }
-  #welcomeBackground { display: block; }
-  #loginForm, #mainApp {
-    background: rgba(0,0,0,0.7);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #000;
-    max-width: 400px;
-    width: 90%;
-    margin-top: 15px;
-  }
-  input[type="password"], input[type="text"], input[type="email"], select {
-    padding: 10px;
-    width: 100%;
-    margin: 5px 0 10px 0;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-  }
-  button {
-    padding: 10px 15px;
-    font-size: 1em;
-    border: none;
-    border-radius: 5px;
-    background: #1da1f2;
-    color: white;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #0d8ddb;
-  }
-  #customizeSection {
-    margin-top: 20px;
-    text-align: left;
-    font-size: 0.9em;
-  }
-  label {
-    display: block;
-    margin-top: 10px;
-    margin-bottom: 5px;
-  }
-  input[type="file"] {
-    width: 100%;
-  }
-  #resetBackground {
-    margin-top: 10px;
-    background: #f44336;
-    width: 100%;
-    font-weight: bold;
-  }
-  #accountsList {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-top: 15px;
-  }
-  .accountItem {
-    background: #222;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .accountItem img {
-    width: 30px; height: 30px;
-    object-fit: contain;
-  }
-  .accountDetails {
-    flex-grow: 1;
-    color: #ddd;
-    font-size: 0.9em;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestor de Cuentas</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      color: white;
+      background: #000;
+    }
+    #videoBackground, #imageBackground {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -2;
+      display: none;
+    }
+    #welcomeScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 10;
+    }
+    #mainContent {
+      display: none;
+      padding: 20px;
+      min-height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+    }
+    input, select, button {
+      font-size: 1em;
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 5px;
+      border: none;
+    }
+    form, .background-options {
+      margin: auto;
+      max-width: 400px;
+    }
+    .accountItem {
+      background: #333;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+    }
+    .accountItem img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
+  <video autoplay muted loop id="videoBackground"></video>
+  <img id="imageBackground" />
 
-<div id="welcomeSection">
-  <img id="welcomeBackground" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80" alt="Fondo de bienvenida" />
-  <video id="welcomeVideo" autoplay muted loop></video>
+  <div id="welcomeScreen">
+    <h1>Bienvenido</h1>
+    <input type="text" id="usernameInput" placeholder="Usuario" />
+    <input type="password" id="passwordInput" placeholder="Clave" />
+    <button onclick="login()">Entrar</button>
+  </div>
 
-  <!-- LOGIN -->
-  <form id="loginForm">
-    <h1>Welcome</h1>
-    <input type="password" id="accessKeyInput" placeholder="Ingresa la clave" autocomplete="off" />
-    <button type="button" id="loginBtn">Entrar</button>
-  </form>
-
-  <!-- APP PRINCIPAL -->
-  <div id="mainApp" style="display:none;">
-
+  <div id="mainContent">
+    <button onclick="logout()">Cerrar sesión</button>
     <h2>Agregar Cuenta</h2>
-    <form id="addAccountForm">
-      <input type="text" id="accountName" placeholder="Nombre cuenta" required />
-      <input type="email" id="accountEmail" placeholder="Correo electrónico" required />
-      <input type="password" id="accountPassword" placeholder="Contraseña" required />
-      
-      <label for="platformSelect">Red social/plataforma</label>
+    <form id="accountForm">
+      <input type="email" id="emailInput" placeholder="Correo electrónico" required />
+      <input type="text" id="passwordAccountInput" placeholder="Contraseña" required />
       <select id="platformSelect" required>
-        <option value="" disabled selected>Selecciona una red social</option>
-        <option value="TikTok" data-logo="https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg">TikTok</option>
-        <option value="Discord" data-logo="https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg">Discord</option>
-        <option value="Apple" data-logo="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg">Apple</option>
-        <option value="Netases" data-logo="https://upload.wikimedia.org/wikipedia/commons/7/7e/Netgear_logo.svg">Netases</option>
+        <option disabled selected>Selecciona una red social</option>
+        <option value="Facebook" data-logo="https://cdn-icons-png.flaticon.com/512/733/733547.png">Facebook</option>
+        <option value="Instagram" data-logo="https://cdn-icons-png.flaticon.com/512/174/174855.png">Instagram</option>
+        <option value="TikTok" data-logo="https://cdn-icons-png.flaticon.com/512/3046/3046127.png">TikTok</option>
+        <option value="Discord" data-logo="https://cdn-icons-png.flaticon.com/512/2111/2111370.png">Discord</option>
+        <option value="Apple" data-logo="https://cdn-icons-png.flaticon.com/512/919/919851.png">Apple</option>
+        <option value="Google" data-logo="https://cdn-icons-png.flaticon.com/512/300/300221.png">Google</option>
+        <option value="Netases" data-logo="https://upload.wikimedia.org/wikipedia/commons/7/7e/Netases_logo.svg">Netases</option>
       </select>
-
-      <label for="platformLogo">O sube un logo personalizado (opcional)</label>
-      <input type="file" id="platformLogo" accept="image/*" />
-
+      <input type="text" id="customNameInput" placeholder="Nombre personalizado (opcional)" />
+      <input type="file" id="customImageInput" accept="image/*" />
       <button type="submit">Guardar Cuenta</button>
     </form>
 
-    <h2>Cuentas Guardadas</h2>
-    <div id="accountsList"></div>
-
-    <div id="customizeSection">
-      <strong>Personaliza el fondo:</strong>
-      <label for="uploadImage">Subir imagen de fondo</label>
-      <input type="file" accept="image/*" id="uploadImage" />
-      <label for="uploadVideo">Subir video de fondo</label>
-      <input type="file" accept="video/*" id="uploadVideo" />
-      <button id="resetBackground" type="button">Restablecer fondo predeterminado</button>
+    <div class="background-options">
+      <h3>Fondo de bienvenida</h3>
+      <label><input type="radio" name="bgOption" value="video" checked /> Video</label>
+      <label><input type="radio" name="bgOption" value="image" /> Imagen</label>
+      <input type="file" id="bgFileInput" accept="video/*,image/*" />
+      <button onclick="applyBackground()">Aplicar fondo</button>
     </div>
+
+    <div id="accountsList"></div>
   </div>
-</div>
 
 <script>
-  // Claves: master y secundarios
-  const masterKey = "admin123";
-  let secondaryUsers = JSON.parse(localStorage.getItem("secondaryUsers")) || [];
+  const users = {
+    usuario1: 'clave123',
+    usuario2: 'clave456'
+  };
+  let currentUser = null;
 
-  const accessKeyInput = document.getElementById("accessKeyInput");
-  const loginBtn = document.getElementById("loginBtn");
-  const loginForm = document.getElementById("loginForm");
-  const mainApp = document.getElementById("mainApp");
-
-  // Fondo
-  const welcomeBackground = document.getElementById("welcomeBackground");
-  const welcomeVideo = document.getElementById("welcomeVideo");
-  const uploadImage = document.getElementById("uploadImage");
-  const uploadVideo = document.getElementById("uploadVideo");
-  const resetBackground = document.getElementById("resetBackground");
-
-  // Cuentas
-  const addAccountForm = document.getElementById("addAccountForm");
-  const accountsList = document.getElementById("accountsList");
-  const platformSelect = document.getElementById("platformSelect");
-  const platformLogoInput = document.getElementById("platformLogo");
-
-  // Datos guardados
-  let accounts = JSON.parse(localStorage.getItem("accounts")) || [];
-
-  // --- LOGIN ---
-  loginBtn.onclick = function() {
-    const key = accessKeyInput.value.trim();
-    if (key === masterKey || secondaryUsers.some(u => u.key === key)) {
-      alert("Acceso concedido");
-      loginForm.style.display = "none";
-      mainApp.style.display = "block";
+  function login() {
+    const user = document.getElementById('usernameInput').value.trim();
+    const pass = document.getElementById('passwordInput').value.trim();
+    if (users[user] && users[user] === pass) {
+      currentUser = user;
+      document.getElementById('welcomeScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
       loadAccounts();
       loadBackground();
     } else {
-      alert("Clave incorrecta");
+      alert('Usuario o clave incorrecta');
     }
-  };
-  accessKeyInput.addEventListener("keydown", (e) => {
-    if(e.key === "Enter") loginBtn.onclick();
-  });
-
-  // --- GUARDAR FONDO ---
-  function saveBackground(type, dataUrl) {
-    localStorage.setItem("backgroundType", type);
-    localStorage.setItem("backgroundData", dataUrl);
   }
 
-  // --- CARGAR FONDO ---
-  function loadBackground() {
-    const type = localStorage.getItem("backgroundType");
-    const data = localStorage.getItem("backgroundData");
-    if(type && data) {
-      if(type === "image") {
-        welcomeBackground.src = data;
-        welcomeBackground.style.display = "block";
-        welcomeVideo.style.display = "none";
-      } else if(type === "video") {
-        welcomeVideo.src = data;
-        welcomeVideo.style.display = "block";
-        welcomeBackground.style.display = "none";
-      }
+  function logout() {
+    currentUser = null;
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('welcomeScreen').style.display = 'flex';
+  }
+
+  document.getElementById('accountForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value.trim();
+    const pass = document.getElementById('passwordAccountInput').value.trim();
+    const platform = document.getElementById('platformSelect').value;
+    const logo = document.querySelector(`#platformSelect option[value='${platform}']`).dataset.logo;
+    const customName = document.getElementById('customNameInput').value.trim();
+    const imageInput = document.getElementById('customImageInput');
+
+    const account = { email, pass, platform, logo, customName, customImage: null };
+
+    if (imageInput.files.length > 0) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        account.customImage = reader.result;
+        saveAccount(account);
+      };
+      reader.readAsDataURL(imageInput.files[0]);
     } else {
-      // Default
-      welcomeBackground.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80";
-      welcomeBackground.style.display = "block";
-      welcomeVideo.style.display = "none";
+      saveAccount(account);
     }
+  });
+
+  function saveAccount(account) {
+    let accounts = JSON.parse(localStorage.getItem(currentUser + '_accounts') || '[]');
+    accounts.push(account);
+    localStorage.setItem(currentUser + '_accounts', JSON.stringify(accounts));
+    document.getElementById('accountForm').reset();
+    loadAccounts();
   }
 
-  uploadImage.addEventListener("change", function() {
-    const file = this.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const url = e.target.result;
-      welcomeBackground.src = url;
-      welcomeBackground.style.display = "block";
-      welcomeVideo.style.display = "none";
-      saveBackground("image", url);
-    }
-    reader.readAsDataURL(file);
-  });
-
-  uploadVideo.addEventListener("change", function() {
-    const file = this.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const url = e.target.result;
-      welcomeVideo.src = url;
-      welcomeVideo.style.display = "block";
-      welcomeBackground.style.display = "none";
-      saveBackground("video", url);
-    }
-    reader.readAsDataURL(file);
-  });
-
-  resetBackground.addEventListener("click", function() {
-    localStorage.removeItem("backgroundType");
-    localStorage.removeItem("backgroundData");
-    loadBackground();
-    uploadImage.value = "";
-    uploadVideo.value = "";
-  });
-
-  // --- CUENTAS ---
-
-  // Mostrar cuentas en lista
   function loadAccounts() {
-    accountsList.innerHTML = "";
-    if(accounts.length === 0) {
-      accountsList.innerHTML = "<p>No hay cuentas guardadas.</p>";
-      return;
-    }
-    accounts.forEach((acc, i) => {
-      const div = document.createElement("div");
-      div.className = "accountItem";
-
-      // Logo
-      const img = document.createElement("img");
-      img.src = acc.logo || "";
-      img.alt = acc.platform;
-      img.onerror = () => { img.style.display = "none"; };
-      div.appendChild(img);
-
-      // Detalles
-      const details = document.createElement("div");
-      details.className = "accountDetails";
-      details.innerHTML = `<strong>${acc.name}</strong><br/>Email: ${acc.email}<br/>Password: ${acc.password}<br/>Red social: ${acc.platform}`;
-      div.appendChild(details);
-
-      accountsList.appendChild(div);
+    const list = document.getElementById('accountsList');
+    const accounts = JSON.parse(localStorage.getItem(currentUser + '_accounts') || '[]');
+    list.innerHTML = '';
+    accounts.forEach(acc => {
+      const item = document.createElement('div');
+      item.className = 'accountItem';
+      const img = document.createElement('img');
+      img.src = acc.customImage || acc.logo;
+      item.appendChild(img);
+      const text = document.createElement('div');
+      text.innerHTML = `<strong>${acc.customName || acc.platform}</strong><br>Correo: ${acc.email}<br>Contraseña: ${acc.pass}`;
+      item.appendChild(text);
+      list.appendChild(item);
     });
   }
 
-  // Guardar cuenta
-  addAccountForm.onsubmit = function(e) {
-    e.preventDefault();
+  function applyBackground() {
+    const option = document.querySelector('input[name="bgOption"]:checked').value;
+    const file = document.getElementById('bgFileInput').files[0];
+    if (!file) return alert('Selecciona un archivo');
 
-    const name = document.getElementById("accountName").value.trim();
-    const email = document.getElementById("accountEmail").value.trim();
-    const password = document.getElementById("accountPassword").value.trim();
-    const platform = platformSelect.value;
-
-    if(!name || !email || !password || !platform) {
-      alert("Completa todos los campos");
-      return;
-    }
-
-    // Logo personalizado
-    if(platformLogoInput.files.length > 0) {
-      const file = platformLogoInput.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const logoUrl = e.target.result;
-        saveAccount(name, email, password, platform, logoUrl);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (option === 'video') {
+        const video = document.getElementById('videoBackground');
+        video.innerHTML = `<source src="${reader.result}" type="${file.type}">`;
+        video.style.display = 'block';
+        document.getElementById('imageBackground').style.display = 'none';
+        localStorage.setItem(currentUser + '_bgType', 'video');
+        localStorage.setItem(currentUser + '_bgData', reader.result);
+      } else {
+        const image = document.getElementById('imageBackground');
+        image.src = reader.result;
+        image.style.display = 'block';
+        document.getElementById('videoBackground').style.display = 'none';
+        localStorage.setItem(currentUser + '_bgType', 'image');
+        localStorage.setItem(currentUser + '_bgData', reader.result);
       }
-      reader.readAsDataURL(file);
-    } else {
-      // Logo default según platform
-      const option = platformSelect.querySelector(`option[value="${platform}"]`);
-      const defaultLogo = option ? option.getAttribute("data-logo") : "";
-      saveAccount(name, email, password, platform, defaultLogo);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function loadBackground() {
+    const type = localStorage.getItem(currentUser + '_bgType');
+    const data = localStorage.getItem(currentUser + '_bgData');
+    if (type === 'video') {
+      const video = document.getElementById('videoBackground');
+      video.innerHTML = `<source src="${data}" type="video/mp4">`;
+      video.style.display = 'block';
+      document.getElementById('imageBackground').style.display = 'none';
+    } else if (type === 'image') {
+      const image = document.getElementById('imageBackground');
+      image.src = data;
+      image.style.display = 'block';
+      document.getElementById('videoBackground').style.display = 'none';
     }
   }
-
-  function saveAccount(name, email, password, platform, logo) {
-    accounts.push({name, email, password, platform, logo});
-    localStorage.setItem("accounts", JSON.stringify(accounts));
-    loadAccounts();
-    addAccountForm.reset();
-    platformLogoInput.value = "";
-  }
-
-  // Al cargar la página, carga fondo y cuentas (si el usuario está logueado)
-  // En login exitosa, ya se carga.
-
 </script>
-
 </body>
 </html>
