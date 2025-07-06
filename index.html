@@ -1,474 +1,498 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Gestor de Cuentas Responsive con Firebase</title>
-<style>
-  /* Reset y básico */
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    font-family: Arial, sans-serif;
-    background: #000;
-    color: white;
-  }
-  /* Fondo video o imagen */
-  #videoBackground, #imageBackground {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: -2;
-    display: none;
-  }
-  /* Pantalla bienvenida */
-  #welcomeScreen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    z-index: 10;
-  }
-  #welcomeScreen input, #welcomeScreen button {
-    width: 100%;
-    max-width: 300px;
-    margin: 10px 0;
-    padding: 10px;
-    font-size: 1em;
-    border-radius: 5px;
-    border: none;
-  }
-  #welcomeScreen small {
-    color: #ccc;
-    cursor: pointer;
-    margin-top: 10px;
-    text-decoration: underline;
-  }
-  /* Contenido principal */
-  #mainContent {
-    display: none;
-    padding: 20px;
-    min-height: 100vh;
-    background: rgba(0,0,0,0.5);
-    position: relative;
-    z-index: 1;
-    max-width: 600px;
-    margin: auto;
-  }
-  button, input, select {
-    font-size: 1em;
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 5px;
-    border: none;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  /* Formularios y opciones */
-  form, .background-options {
-    margin-bottom: 20px;
-  }
-  /* Lista cuentas */
-  .accountItem {
-    background: #333;
-    margin: 10px 0;
-    padding: 10px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-  }
-  .accountItem img {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    margin-right: 10px;
-    border-radius: 5px;
-  }
-  /* Modal cuentas */
-  #accountsModal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  #accountsModal > div {
-    background: #222;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    overflow-y: auto;
-    color: white;
-    position: relative;
-  }
-  #accountsModal button.closeModal {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 22px;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-  }
-
-  /* Responsive: mejor espacio y tamaño en móviles */
-  @media (max-width: 480px) {
-    #mainContent {
-      padding: 15px;
-      max-width: 95%;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestor de Contraseñas Moderno</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet" />
+  <style>
+    /* Estilos generales */
+    body {
+      margin: 0;
+      font-family: 'Poppins', 'Roboto', sans-serif;
+      background-color: #1e1e2f;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      transition: background-color 0.4s ease;
     }
-    input, button, select {
-      font-size: 1.1em;
+    header {
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #4f8ef7;
+      text-align: center;
     }
-  }
-</style>
+    main {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(30, 30, 47, 0.85);
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 0 15px #4f8ef7aa;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #bbb;
+    }
+    input[type=password], input[type=text], select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    button {
+      background-color: #4f8ef7;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+    button:hover {
+      background-color: #3c70d1;
+    }
+    .background-picker {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    .bg-option {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    .bg-option.selected {
+      border-color: #4f8ef7;
+    }
+    /* Modal */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .modal-bg.active {
+      display: flex;
+    }
+    .modal {
+      background: #222245;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 0 30px #4f8ef7aa;
+      color: #eee;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: #eee;
+      cursor: pointer;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .account-list {
+      list-style: none;
+      padding: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: #1b1b35;
+    }
+    .account-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #444;
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: #ddd;
+    }
+    .account-item:last-child {
+      border-bottom: none;
+    }
+    .account-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: #4f8ef7;
+    }
+    .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .tag {
+      background: #4f8ef7;
+      color: white;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      user-select: none;
+    }
+    .btn-small {
+      background: #3c70d1;
+      border: none;
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin-left: 8px;
+      transition: background-color 0.3s ease;
+    }
+    .btn-small:hover {
+      background: #305aab;
+    }
+    .account-actions {
+      margin-top: 6px;
+      display: flex;
+      gap: 12px;
+    }
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+      color: #ccc;
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-group input[type=checkbox] {
+      cursor: pointer;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .input-row > input[type=text], .input-row > input[type=password] {
+      flex: 1;
+      min-width: 140px;
+    }
+    /* Video background */
+    #videoBackground {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+      display: none;
+    }
+    /* Responsive */
+    @media (max-width: 600px) {
+      main, .modal {
+        max-width: 90vw;
+      }
+      button {
+        font-size: 0.9rem;
+      }
+      .account-item {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<video autoplay muted loop id="videoBackground"></video>
-<img id="imageBackground" />
+<header>Gestor de Contraseñas Moderno</header>
 
-<!-- Pantalla bienvenida -->
-<div id="welcomeScreen">
-  <h1>Bienvenido</h1>
-  <input type="email" id="emailInput" placeholder="Correo electrónico" />
-  <input type="password" id="passwordInput" placeholder="Contraseña" />
-  <button onclick="login()">Entrar</button>
-  <small id="toggleRegister" onclick="toggleRegisterMode()">¿No tienes cuenta? Regístrate</small>
-</div>
+<main>
+  <label for="masterKey">Ingresa tu clave única:</label>
+  <input type="password" id="masterKey" placeholder="Clave única" autocomplete="off" />
+  <button id="loginBtn">Entrar</button>
 
-<!-- Contenido principal -->
-<div id="mainContent">
-  <button onclick="logout()">Cerrar sesión</button>
-
-  <h2>Agregar Cuenta</h2>
-  <form id="accountForm">
-    <input type="email" id="accountEmailInput" placeholder="Correo electrónico" required />
-    <input type="text" id="passwordAccountInput" placeholder="Contraseña" required />
-    <select id="platformSelect" required>
-      <option disabled selected>Selecciona una red social</option>
-      <option value="Facebook" data-logo="https://cdn-icons-png.flaticon.com/512/733/733547.png">Facebook</option>
-      <option value="Instagram" data-logo="https://cdn-icons-png.flaticon.com/512/174/174855.png">Instagram</option>
-      <option value="TikTok" data-logo="https://cdn-icons-png.flaticon.com/512/3046/3046127.png">TikTok</option>
-      <option value="Discord" data-logo="https://cdn-icons-png.flaticon.com/512/2111/2111370.png">Discord</option>
-      <option value="Apple" data-logo="https://cdn-icons-png.flaticon.com/512/919/919851.png">Apple</option>
-      <option value="Google" data-logo="https://cdn-icons-png.flaticon.com/512/300/300221.png">Google</option>
-      <option value="Netases" data-logo="https://upload.wikimedia.org/wikipedia/commons/7/7e/Netases_logo.svg">Netases</option>
-    </select>
-    <input type="text" id="customNameInput" placeholder="Nombre personalizado (opcional)" />
-    <input type="file" id="customImageInput" accept="image/*" />
-    <button type="submit">Guardar Cuenta</button>
-  </form>
-
-  <div class="background-options">
-    <h3>Fondo de bienvenida</h3>
-    <label><input type="radio" name="bgOption" value="video" checked /> Video</label>
-    <label><input type="radio" name="bgOption" value="image" /> Imagen</label>
-    <input type="file" id="bgFileInput" accept="video/*,image/*" />
-    <button onclick="applyBackground()">Aplicar fondo</button>
+  <div class="background-picker" aria-label="Seleccionar fondo">
+    <div class="bg-option" data-color="#1e1e2f" style="background:#1e1e2f;" title="Oscuro" tabindex="0"></div>
+    <div class="bg-option" data-color="#f5f5f5" style="background:#f5f5f5;" title="Claro" tabindex="0"></div>
+    <div class="bg-option" data-color="#2c3e50" style="background:#2c3e50;" title="Azul" tabindex="0"></div>
+    <div class="bg-option" data-color="#4a148c" style="background:#4a148c;" title="Morado" tabindex="0"></div>
   </div>
 
-  <button onclick="openAccountsModal()">Ver Cuentas Guardadas</button>
-</div>
+  <label for="videoInput">Sube un video para fondo (opcional, hasta 8K):</label>
+  <input type="file" id="videoInput" accept="video/*" />
+</main>
 
-<!-- Modal cuentas -->
-<div id="accountsModal">
-  <div>
-    <button class="closeModal" onclick="closeAccountsModal()">✖</button>
-    <h2>Cuentas Guardadas</h2>
-    <div id="modalAccountsList"></div>
+<video id="videoBackground" autoplay muted loop></video>
+
+<!-- Modal Cuentas -->
+<div class="modal-bg" id="accountsModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <button class="close-btn" aria-label="Cerrar ventana" id="closeAccountsModal">&times;</button>
+    <h2 id="modalTitle">Tus Cuentas Guardadas</h2>
+    
+    <ul class="account-list" id="accountList"></ul>
+
+    <h3>Añadir nueva cuenta</h3>
+    <label for="accountEmail">Correo o Usuario:</label>
+    <input type="text" id="accountEmail" placeholder="Correo electrónico o usuario" autocomplete="off" />
+
+    <label for="accountPassword">Contraseña:</label>
+    <input type="password" id="accountPassword" placeholder="Contraseña" autocomplete="off" />
+
+    <label>Etiquetas (redes sociales):</label>
+    <div class="checkbox-group" id="tagsCheckboxes">
+      <!-- Se llenan con JS -->
+    </div>
+
+    <button id="addAccountBtn">Guardar Cuenta</button>
   </div>
 </div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
-<script>
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  // Configuración Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAmwpl9yJ-KZwGTOOF13fPDHe18Sei7po",
+    authDomain: "cuentasggs-681d5.firebaseapp.com",
+    databaseURL: "https://cuentasggs-681d5-default-rtdb.firebaseio.com",
+    projectId: "cuentasggs-681d5",
+    storageBucket: "cuentasggs-681d5.appspot.com",
+    messagingSenderId: "734735078476",
+    appId: "1:734735078476:web:b1955300d7456a410590e9",
+    measurementId: "G-SQX1JTL51S"
+  };
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCAmwpl9yJ-KZwGTOOF13fPDHe18Sei7po",
-  authDomain: "cuentasggs-681d5.firebaseapp.com",
-  projectId: "cuentasggs-681d5",
-  storageBucket: "cuentasggs-681d5.firebasestorage.app",
-  messagingSenderId: "734735078476",
-  appId: "1:734735078476:web:b1955300d7456a410590e9",
-  measurementId: "G-SQX1JTL51S"
-};
+  // Inicializar Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+  // Variables clave
+  const claveUnica = "CH999000";
+  const usuarioId = "usuario1"; // puedes cambiar a un ID dinámico si quieres
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  // Redes sociales con emoji icono simple para visual
+  const redesSociales = [
+    {name: "Facebook", icon:"📘"},
+    {name: "Instagram", icon:"📸"},
+    {name: "Twitter", icon:"🐦"},
+    {name: "LinkedIn", icon:"🔗"},
+    {name: "TikTok", icon:"🎵"},
+    {name: "Snapchat", icon:"👻"},
+    {name: "Netases", icon:"🕸️"},
+    {name: "YouTube", icon:"▶️"},
+    {name: "WhatsApp", icon:"💬"}
+  ];
 
-  // Variables globales
-  let currentUser = null;
-  let isRegisterMode = false;
+  // Elementos DOM
+  const masterKeyInput = document.getElementById('masterKey');
+  const loginBtn = document.getElementById('loginBtn');
+  const accountsModal = document.getElementById('accountsModal');
+  const closeAccountsModal = document.getElementById('closeAccountsModal');
+  const accountList = document.getElementById('accountList');
+  const accountEmail = document.getElementById('accountEmail');
+  const accountPassword = document.getElementById('accountPassword');
+  const tagsCheckboxes = document.getElementById('tagsCheckboxes');
+  const addAccountBtn = document.getElementById('addAccountBtn');
 
-  // Alternar modo login / registro
-  function toggleRegisterMode(){
-    isRegisterMode = !isRegisterMode;
-    document.getElementById('toggleRegister').textContent = isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
-    document.querySelector('#welcomeScreen button').textContent = isRegisterMode ? 'Registrar' : 'Entrar';
-  }
+  const bgOptions = document.querySelectorAll('.bg-option');
+  const videoInput = document.getElementById('videoInput');
+  const videoBackground = document.getElementById('videoBackground');
 
-  // Función para login o registrar
-  function login() {
-    const email = document.getElementById('emailInput').value.trim();
-    const password = document.getElementById('passwordInput').value.trim();
-    if(!email || !password) {
-      alert('Completa email y contraseña');
-      return;
-    }
-    if(isRegisterMode){
-      // Registro
-      auth.createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        alert('Usuario registrado, ahora inicia sesión');
-        toggleRegisterMode();
-      })
-      .catch(err => alert(err.message));
-    } else {
-      // Login
-      auth.signInWithEmailAndPassword(email, password)
-      .then(cred => {
-        currentUser = cred.user;
-        onUserLoggedIn();
-      })
-      .catch(err => alert(err.message));
-    }
-  }
-
-  // Al cambiar el estado de autenticación
-  auth.onAuthStateChanged(user => {
-    if(user){
-      currentUser = user;
-      onUserLoggedIn();
-    } else {
-      currentUser = null;
-      document.getElementById('welcomeScreen').style.display = 'flex';
-      document.getElementById('mainContent').style.display = 'none';
-      clearUI();
-    }
-  });
-
-  // Cuando un usuario inicia sesión
-  function onUserLoggedIn() {
-    document.getElementById('welcomeScreen').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
-    loadAccountsFromFirestore();
-    loadBackgroundFromFirestore();
-  }
-
-  // Cerrar sesión
-  function logout() {
-    auth.signOut();
-  }
-
-  // Guardar cuenta nueva (en Firestore)
-  document.getElementById('accountForm').addEventListener('submit', e => {
-    e.preventDefault();
-    if(!currentUser){
-      alert('Inicia sesión primero.');
-      return;
-    }
-
-    const accountEmail = document.getElementById('accountEmailInput').value.trim();
-    const accountPassword = document.getElementById('passwordAccountInput').value.trim();
-    const platform = document.getElementById('platformSelect').value;
-    const customName = document.getElementById('customNameInput').value.trim();
-
-    if(!accountEmail || !accountPassword || !platform){
-      alert('Completa todos los campos requeridos');
-      return;
-    }
-
-    // Imagen personalizada (si hay)
-    const fileInput = document.getElementById('customImageInput');
-    if(fileInput.files.length > 0){
-      const file = fileInput.files[0];
-      const reader = new FileReader();
-      reader.onload = function(evt){
-        saveAccount({
-          email: accountEmail,
-          password: accountPassword,
-          platform,
-          customName,
-          customImage: evt.target.result
-        });
-      };
-      reader.readAsDataURL(file);
-    } else {
-      saveAccount({
-        email: accountEmail,
-        password: accountPassword,
-        platform,
-        customName,
-        customImage: null
-      });
-    }
-  });
-
-  // Guardar en Firestore
-  function saveAccount(account){
-    const userAccountsRef = db.collection('users').doc(currentUser.uid).collection('accounts');
-    userAccountsRef.add(account)
-    .then(() => {
-      alert('Cuenta guardada');
-      document.getElementById('accountForm').reset();
-      loadAccountsFromFirestore();
-    })
-    .catch(err => alert('Error guardando cuenta: ' + err.message));
-  }
-
-  // Cargar cuentas de Firestore
-  function loadAccountsFromFirestore(){
-    const userAccountsRef = db.collection('users').doc(currentUser.uid).collection('accounts');
-    userAccountsRef.get()
-    .then(querySnapshot => {
-      window.savedAccounts = [];
-      querySnapshot.forEach(doc => {
-        savedAccounts.push({id: doc.id, ...doc.data()});
-      });
-    })
-    .catch(err => alert('Error cargando cuentas: ' + err.message));
-  }
-
-  // Mostrar cuentas en modal
-  function openAccountsModal(){
-    if(!window.savedAccounts || window.savedAccounts.length === 0){
-      alert('No hay cuentas guardadas');
-      return;
-    }
-    const listDiv = document.getElementById('modalAccountsList');
-    listDiv.innerHTML = '';
-    window.savedAccounts.forEach(acc => {
-      const div = document.createElement('div');
-      div.className = 'accountItem';
-
-      // Logo o imagen personalizada
-      let imgSrc = '';
-      if(acc.customImage){
-        imgSrc = acc.customImage;
-      } else {
-        // Buscar logo según plataforma
-        const option = [...document.getElementById('platformSelect').options].find(o => o.value === acc.platform);
-        imgSrc = option ? option.getAttribute('data-logo') : '';
-      }
-      if(imgSrc){
-        const img = document.createElement('img');
-        img.src = imgSrc;
-        div.appendChild(img);
-      }
-
-      const nameText = acc.customName ? acc.customName : acc.platform;
-      div.appendChild(document.createTextNode(`${nameText} (${acc.email})`));
-      listDiv.appendChild(div);
+  // Llenar checkbox etiquetas
+  function crearCheckboxes() {
+    redesSociales.forEach(red => {
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="checkbox" value="${red.name}" /> ${red.icon} ${red.name}`;
+      tagsCheckboxes.appendChild(label);
     });
-
-    document.getElementById('accountsModal').style.display = 'flex';
   }
-  function closeAccountsModal(){
-    document.getElementById('accountsModal').style.display = 'none';
-  }
+  crearCheckboxes();
 
-  // Fondo - cargar y guardar
-  const videoBg = document.getElementById('videoBackground');
-  const imageBg = document.getElementById('imageBackground');
+  // Cambio de fondo color
+  bgOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      bgOptions.forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      // Cambiar fondo y ocultar video
+      document.body.style.backgroundColor = option.dataset.color;
+      videoBackground.style.display = "none";
+      videoBackground.pause();
+      videoBackground.src = "";
+    });
+  });
 
-  function applyBackground(){
-    if(!currentUser){
-      alert('Inicia sesión primero.');
+  // Cambiar fondo a video
+  videoInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      alert('Por favor, selecciona un archivo de video válido.');
       return;
     }
-    const bgOption = document.querySelector('input[name="bgOption"]:checked').value;
-    const fileInput = document.getElementById('bgFileInput');
+    const url = URL.createObjectURL(file);
+    videoBackground.src = url;
+    videoBackground.style.display = "block";
+    videoBackground.play();
 
-    if(fileInput.files.length === 0){
-      alert('Selecciona un archivo para el fondo');
+    // Deseleccionar colores
+    bgOptions.forEach(o => o.classList.remove('selected'));
+    document.body.style.backgroundColor = 'transparent';
+  });
+
+  // Mostrar modal
+  function abrirModal() {
+    accountsModal.classList.add('active');
+  }
+  // Cerrar modal
+  function cerrarModal() {
+    accountsModal.classList.remove('active');
+  }
+
+  closeAccountsModal.addEventListener('click', cerrarModal);
+
+  // Validar clave única
+  loginBtn.addEventListener('click', () => {
+    const key = masterKeyInput.value.trim();
+    if (key === claveUnica) {
+      abrirModal();
+      masterKeyInput.value = "";
+      cargarCuentas();
+    } else {
+      alert("Clave incorrecta, intenta de nuevo.");
+      masterKeyInput.value = "";
+      masterKeyInput.focus();
+    }
+  });
+
+  // Guardar cuenta en Firebase
+  addAccountBtn.addEventListener('click', () => {
+    const email = accountEmail.value.trim();
+    const pass = accountPassword.value.trim();
+    if (!email || !pass) {
+      alert("Correo/usuario y contraseña son obligatorios.");
       return;
     }
-    const file = fileInput.files[0];
-    const reader = new FileReader();
+    // Obtener etiquetas marcadas
+    const tagsChecked = [...tagsCheckboxes.querySelectorAll('input[type=checkbox]:checked')]
+      .map(cb => cb.value);
 
-    reader.onload = function(evt){
-      const dataURL = evt.target.result;
-      // Guardar fondo en Firestore
-      db.collection('users').doc(currentUser.uid).set({
-        background: {
-          type: bgOption,
-          data: dataURL
-        }
-      }, {merge:true})
-      .then(() => {
-        setBackground(bgOption, dataURL);
-        alert('Fondo guardado');
-      })
-      .catch(err => alert('Error guardando fondo: ' + err.message));
+    const cuenta = {
+      email,
+      password: pass,
+      tags: tagsChecked,
+      timestamp: Date.now()
     };
 
-    reader.readAsDataURL(file);
-  }
+    // Guardar en Firebase
+    push(ref(db, `usuarios/${usuarioId}/cuentas`), cuenta)
+      .then(() => {
+        accountEmail.value = "";
+        accountPassword.value = "";
+        tagsCheckboxes.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+        cargarCuentas();
+      })
+      .catch(e => alert("Error guardando cuenta: " + e));
+  });
 
-  function setBackground(type, dataURL){
-    if(type === 'video'){
-      videoBg.src = dataURL;
-      videoBg.style.display = 'block';
-      imageBg.style.display = 'none';
-    } else {
-      imageBg.src = dataURL;
-      imageBg.style.display = 'block';
-      videoBg.style.display = 'none';
-    }
-  }
+  // Cargar cuentas desde Firebase
+  function cargarCuentas() {
+    const cuentasRef = ref(db, `usuarios/${usuarioId}/cuentas`);
+    onValue(cuentasRef, (snapshot) => {
+      accountList.innerHTML = "";
+      const data = snapshot.val();
+      if (!data) {
+        accountList.innerHTML = "<li style='padding:10px;color:#777;'>No hay cuentas guardadas.</li>";
+        return;
+      }
+      for (const id in data) {
+        const c = data[id];
+        const li = document.createElement('li');
+        li.className = 'account-item';
 
-  // Cargar fondo guardado al iniciar sesión
-  function loadBackgroundFromFirestore(){
-    db.collection('users').doc(currentUser.uid).get()
-    .then(doc => {
-      if(doc.exists){
-        const bg = doc.data().background;
-        if(bg){
-          setBackground(bg.type, bg.data);
-        } else {
-          // Por defecto video oculto
-          videoBg.style.display = 'none';
-          imageBg.style.display = 'none';
+        const header = document.createElement('div');
+        header.className = 'account-header';
+        header.textContent = c.email;
+
+        // Botón eliminar
+        const delBtn = document.createElement('button');
+        delBtn.textContent = "Eliminar";
+        delBtn.className = 'btn-small';
+        delBtn.addEventListener('click', () => {
+          if (confirm(`Eliminar cuenta ${c.email}?`)) {
+            remove(ref(db, `usuarios/${usuarioId}/cuentas/${id}`));
+          }
+        });
+
+        header.appendChild(delBtn);
+        li.appendChild(header);
+
+        // Contraseña (oculta inicialmente, toggle)
+        const passDiv = document.createElement('div');
+        passDiv.textContent = "Contraseña: •••••••••";
+        passDiv.style.cursor = "pointer";
+        passDiv.title = "Click para mostrar/ocultar contraseña";
+        let visible = false;
+        passDiv.addEventListener('click', () => {
+          visible = !visible;
+          passDiv.textContent = visible ? `Contraseña: ${c.password}` : "Contraseña: •••••••••";
+        });
+        li.appendChild(passDiv);
+
+        // Etiquetas
+        if (c.tags && c.tags.length) {
+          const tagsDiv = document.createElement('div');
+          tagsDiv.className = 'tags';
+          c.tags.forEach(t => {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'tag';
+            tagEl.textContent = t;
+            tagsDiv.appendChild(tagEl);
+          });
+          li.appendChild(tagsDiv);
         }
+
+        accountList.appendChild(li);
       }
     });
   }
 
-  // Limpiar UI al cerrar sesión
-  function clearUI(){
-    window.savedAccounts = [];
-    document.getElementById('modalAccountsList').innerHTML = '';
-    videoBg.style.display = 'none';
-    imageBg.style.display = 'none';
-  }
 </script>
-
 </body>
 </html>
