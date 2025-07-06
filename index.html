@@ -1,234 +1,474 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestor de Cuentas</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-      color: white;
-      background: #000;
-    }
-    #videoBackground, #imageBackground {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -2;
-      display: none;
-    }
-    #welcomeScreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      z-index: 10;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gestor de Cuentas Responsive con Firebase</title>
+<style>
+  /* Reset y básico */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: Arial, sans-serif;
+    background: #000;
+    color: white;
+  }
+  /* Fondo video o imagen */
+  #videoBackground, #imageBackground {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: -2;
+    display: none;
+  }
+  /* Pantalla bienvenida */
+  #welcomeScreen {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 10;
+  }
+  #welcomeScreen input, #welcomeScreen button {
+    width: 100%;
+    max-width: 300px;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+  }
+  #welcomeScreen small {
+    color: #ccc;
+    cursor: pointer;
+    margin-top: 10px;
+    text-decoration: underline;
+  }
+  /* Contenido principal */
+  #mainContent {
+    display: none;
+    padding: 20px;
+    min-height: 100vh;
+    background: rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: auto;
+  }
+  button, input, select {
+    font-size: 1em;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* Formularios y opciones */
+  form, .background-options {
+    margin-bottom: 20px;
+  }
+  /* Lista cuentas */
+  .accountItem {
+    background: #333;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+  }
+  .accountItem img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    margin-right: 10px;
+    border-radius: 5px;
+  }
+  /* Modal cuentas */
+  #accountsModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  #accountsModal > div {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: white;
+    position: relative;
+  }
+  #accountsModal button.closeModal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 22px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* Responsive: mejor espacio y tamaño en móviles */
+  @media (max-width: 480px) {
     #mainContent {
-      display: none;
-      padding: 20px;
-      min-height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      max-width: 95%;
     }
-    input, select, button {
-      font-size: 1em;
-      margin: 10px 0;
-      padding: 10px;
-      width: 100%;
-      max-width: 400px;
-      border-radius: 5px;
-      border: none;
+    input, button, select {
+      font-size: 1.1em;
     }
-    form, .background-options {
-      margin: auto;
-      max-width: 400px;
-    }
-    .accountItem {
-      background: #333;
-      margin: 10px auto;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 500px;
-      display: flex;
-      align-items: center;
-    }
-    .accountItem img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      margin-right: 10px;
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <video autoplay muted loop id="videoBackground"></video>
-  <img id="imageBackground" />
 
-  <div id="welcomeScreen">
-    <h1>Bienvenido</h1>
-    <input type="text" id="usernameInput" placeholder="Usuario" />
-    <input type="password" id="passwordInput" placeholder="Clave" />
-    <button onclick="login()">Entrar</button>
+<video autoplay muted loop id="videoBackground"></video>
+<img id="imageBackground" />
+
+<!-- Pantalla bienvenida -->
+<div id="welcomeScreen">
+  <h1>Bienvenido</h1>
+  <input type="email" id="emailInput" placeholder="Correo electrónico" />
+  <input type="password" id="passwordInput" placeholder="Contraseña" />
+  <button onclick="login()">Entrar</button>
+  <small id="toggleRegister" onclick="toggleRegisterMode()">¿No tienes cuenta? Regístrate</small>
+</div>
+
+<!-- Contenido principal -->
+<div id="mainContent">
+  <button onclick="logout()">Cerrar sesión</button>
+
+  <h2>Agregar Cuenta</h2>
+  <form id="accountForm">
+    <input type="email" id="accountEmailInput" placeholder="Correo electrónico" required />
+    <input type="text" id="passwordAccountInput" placeholder="Contraseña" required />
+    <select id="platformSelect" required>
+      <option disabled selected>Selecciona una red social</option>
+      <option value="Facebook" data-logo="https://cdn-icons-png.flaticon.com/512/733/733547.png">Facebook</option>
+      <option value="Instagram" data-logo="https://cdn-icons-png.flaticon.com/512/174/174855.png">Instagram</option>
+      <option value="TikTok" data-logo="https://cdn-icons-png.flaticon.com/512/3046/3046127.png">TikTok</option>
+      <option value="Discord" data-logo="https://cdn-icons-png.flaticon.com/512/2111/2111370.png">Discord</option>
+      <option value="Apple" data-logo="https://cdn-icons-png.flaticon.com/512/919/919851.png">Apple</option>
+      <option value="Google" data-logo="https://cdn-icons-png.flaticon.com/512/300/300221.png">Google</option>
+      <option value="Netases" data-logo="https://upload.wikimedia.org/wikipedia/commons/7/7e/Netases_logo.svg">Netases</option>
+    </select>
+    <input type="text" id="customNameInput" placeholder="Nombre personalizado (opcional)" />
+    <input type="file" id="customImageInput" accept="image/*" />
+    <button type="submit">Guardar Cuenta</button>
+  </form>
+
+  <div class="background-options">
+    <h3>Fondo de bienvenida</h3>
+    <label><input type="radio" name="bgOption" value="video" checked /> Video</label>
+    <label><input type="radio" name="bgOption" value="image" /> Imagen</label>
+    <input type="file" id="bgFileInput" accept="video/*,image/*" />
+    <button onclick="applyBackground()">Aplicar fondo</button>
   </div>
 
-  <div id="mainContent">
-    <button onclick="logout()">Cerrar sesión</button>
-    <h2>Agregar Cuenta</h2>
-    <form id="accountForm">
-      <input type="email" id="emailInput" placeholder="Correo electrónico" required />
-      <input type="text" id="passwordAccountInput" placeholder="Contraseña" required />
-      <select id="platformSelect" required>
-        <option disabled selected>Selecciona una red social</option>
-        <option value="Facebook" data-logo="https://cdn-icons-png.flaticon.com/512/733/733547.png">Facebook</option>
-        <option value="Instagram" data-logo="https://cdn-icons-png.flaticon.com/512/174/174855.png">Instagram</option>
-        <option value="TikTok" data-logo="https://cdn-icons-png.flaticon.com/512/3046/3046127.png">TikTok</option>
-        <option value="Discord" data-logo="https://cdn-icons-png.flaticon.com/512/2111/2111370.png">Discord</option>
-        <option value="Apple" data-logo="https://cdn-icons-png.flaticon.com/512/919/919851.png">Apple</option>
-        <option value="Google" data-logo="https://cdn-icons-png.flaticon.com/512/300/300221.png">Google</option>
-        <option value="Netases" data-logo="https://upload.wikimedia.org/wikipedia/commons/7/7e/Netases_logo.svg">Netases</option>
-      </select>
-      <input type="text" id="customNameInput" placeholder="Nombre personalizado (opcional)" />
-      <input type="file" id="customImageInput" accept="image/*" />
-      <button type="submit">Guardar Cuenta</button>
-    </form>
+  <button onclick="openAccountsModal()">Ver Cuentas Guardadas</button>
+</div>
 
-    <div class="background-options">
-      <h3>Fondo de bienvenida</h3>
-      <label><input type="radio" name="bgOption" value="video" checked /> Video</label>
-      <label><input type="radio" name="bgOption" value="image" /> Imagen</label>
-      <input type="file" id="bgFileInput" accept="video/*,image/*" />
-      <button onclick="applyBackground()">Aplicar fondo</button>
-    </div>
-
-    <div id="accountsList"></div>
+<!-- Modal cuentas -->
+<div id="accountsModal">
+  <div>
+    <button class="closeModal" onclick="closeAccountsModal()">✖</button>
+    <h2>Cuentas Guardadas</h2>
+    <div id="modalAccountsList"></div>
   </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-  const users = {
-    usuario1: 'clave123',
-    usuario2: 'clave456'
-  };
-  let currentUser = null;
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCAmwpl9yJ-KZwGTOOF13fPDHe18Sei7po",
+  authDomain: "cuentasggs-681d5.firebaseapp.com",
+  projectId: "cuentasggs-681d5",
+  storageBucket: "cuentasggs-681d5.firebasestorage.app",
+  messagingSenderId: "734735078476",
+  appId: "1:734735078476:web:b1955300d7456a410590e9",
+  measurementId: "G-SQX1JTL51S"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Variables globales
+  let currentUser = null;
+  let isRegisterMode = false;
+
+  // Alternar modo login / registro
+  function toggleRegisterMode(){
+    isRegisterMode = !isRegisterMode;
+    document.getElementById('toggleRegister').textContent = isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+    document.querySelector('#welcomeScreen button').textContent = isRegisterMode ? 'Registrar' : 'Entrar';
+  }
+
+  // Función para login o registrar
   function login() {
-    const user = document.getElementById('usernameInput').value.trim();
-    const pass = document.getElementById('passwordInput').value.trim();
-    if (users[user] && users[user] === pass) {
-      currentUser = user;
-      document.getElementById('welcomeScreen').style.display = 'none';
-      document.getElementById('mainContent').style.display = 'block';
-      loadAccounts();
-      loadBackground();
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
+    if(!email || !password) {
+      alert('Completa email y contraseña');
+      return;
+    }
+    if(isRegisterMode){
+      // Registro
+      auth.createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        alert('Usuario registrado, ahora inicia sesión');
+        toggleRegisterMode();
+      })
+      .catch(err => alert(err.message));
     } else {
-      alert('Usuario o clave incorrecta');
+      // Login
+      auth.signInWithEmailAndPassword(email, password)
+      .then(cred => {
+        currentUser = cred.user;
+        onUserLoggedIn();
+      })
+      .catch(err => alert(err.message));
     }
   }
 
-  function logout() {
-    currentUser = null;
-    document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('welcomeScreen').style.display = 'flex';
-  }
-
-  document.getElementById('accountForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const email = document.getElementById('emailInput').value.trim();
-    const pass = document.getElementById('passwordAccountInput').value.trim();
-    const platform = document.getElementById('platformSelect').value;
-    const logo = document.querySelector(`#platformSelect option[value='${platform}']`).dataset.logo;
-    const customName = document.getElementById('customNameInput').value.trim();
-    const imageInput = document.getElementById('customImageInput');
-
-    const account = { email, pass, platform, logo, customName, customImage: null };
-
-    if (imageInput.files.length > 0) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        account.customImage = reader.result;
-        saveAccount(account);
-      };
-      reader.readAsDataURL(imageInput.files[0]);
+  // Al cambiar el estado de autenticación
+  auth.onAuthStateChanged(user => {
+    if(user){
+      currentUser = user;
+      onUserLoggedIn();
     } else {
-      saveAccount(account);
+      currentUser = null;
+      document.getElementById('welcomeScreen').style.display = 'flex';
+      document.getElementById('mainContent').style.display = 'none';
+      clearUI();
     }
   });
 
-  function saveAccount(account) {
-    let accounts = JSON.parse(localStorage.getItem(currentUser + '_accounts') || '[]');
-    accounts.push(account);
-    localStorage.setItem(currentUser + '_accounts', JSON.stringify(accounts));
-    document.getElementById('accountForm').reset();
-    loadAccounts();
+  // Cuando un usuario inicia sesión
+  function onUserLoggedIn() {
+    document.getElementById('welcomeScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    loadAccountsFromFirestore();
+    loadBackgroundFromFirestore();
   }
 
-  function loadAccounts() {
-    const list = document.getElementById('accountsList');
-    const accounts = JSON.parse(localStorage.getItem(currentUser + '_accounts') || '[]');
-    list.innerHTML = '';
-    accounts.forEach(acc => {
-      const item = document.createElement('div');
-      item.className = 'accountItem';
-      const img = document.createElement('img');
-      img.src = acc.customImage || acc.logo;
-      item.appendChild(img);
-      const text = document.createElement('div');
-      text.innerHTML = `<strong>${acc.customName || acc.platform}</strong><br>Correo: ${acc.email}<br>Contraseña: ${acc.pass}`;
-      item.appendChild(text);
-      list.appendChild(item);
-    });
+  // Cerrar sesión
+  function logout() {
+    auth.signOut();
   }
 
-  function applyBackground() {
-    const option = document.querySelector('input[name="bgOption"]:checked').value;
-    const file = document.getElementById('bgFileInput').files[0];
-    if (!file) return alert('Selecciona un archivo');
+  // Guardar cuenta nueva (en Firestore)
+  document.getElementById('accountForm').addEventListener('submit', e => {
+    e.preventDefault();
+    if(!currentUser){
+      alert('Inicia sesión primero.');
+      return;
+    }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (option === 'video') {
-        const video = document.getElementById('videoBackground');
-        video.innerHTML = `<source src="${reader.result}" type="${file.type}">`;
-        video.style.display = 'block';
-        document.getElementById('imageBackground').style.display = 'none';
-        localStorage.setItem(currentUser + '_bgType', 'video');
-        localStorage.setItem(currentUser + '_bgData', reader.result);
+    const accountEmail = document.getElementById('accountEmailInput').value.trim();
+    const accountPassword = document.getElementById('passwordAccountInput').value.trim();
+    const platform = document.getElementById('platformSelect').value;
+    const customName = document.getElementById('customNameInput').value.trim();
+
+    if(!accountEmail || !accountPassword || !platform){
+      alert('Completa todos los campos requeridos');
+      return;
+    }
+
+    // Imagen personalizada (si hay)
+    const fileInput = document.getElementById('customImageInput');
+    if(fileInput.files.length > 0){
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function(evt){
+        saveAccount({
+          email: accountEmail,
+          password: accountPassword,
+          platform,
+          customName,
+          customImage: evt.target.result
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      saveAccount({
+        email: accountEmail,
+        password: accountPassword,
+        platform,
+        customName,
+        customImage: null
+      });
+    }
+  });
+
+  // Guardar en Firestore
+  function saveAccount(account){
+    const userAccountsRef = db.collection('users').doc(currentUser.uid).collection('accounts');
+    userAccountsRef.add(account)
+    .then(() => {
+      alert('Cuenta guardada');
+      document.getElementById('accountForm').reset();
+      loadAccountsFromFirestore();
+    })
+    .catch(err => alert('Error guardando cuenta: ' + err.message));
+  }
+
+  // Cargar cuentas de Firestore
+  function loadAccountsFromFirestore(){
+    const userAccountsRef = db.collection('users').doc(currentUser.uid).collection('accounts');
+    userAccountsRef.get()
+    .then(querySnapshot => {
+      window.savedAccounts = [];
+      querySnapshot.forEach(doc => {
+        savedAccounts.push({id: doc.id, ...doc.data()});
+      });
+    })
+    .catch(err => alert('Error cargando cuentas: ' + err.message));
+  }
+
+  // Mostrar cuentas en modal
+  function openAccountsModal(){
+    if(!window.savedAccounts || window.savedAccounts.length === 0){
+      alert('No hay cuentas guardadas');
+      return;
+    }
+    const listDiv = document.getElementById('modalAccountsList');
+    listDiv.innerHTML = '';
+    window.savedAccounts.forEach(acc => {
+      const div = document.createElement('div');
+      div.className = 'accountItem';
+
+      // Logo o imagen personalizada
+      let imgSrc = '';
+      if(acc.customImage){
+        imgSrc = acc.customImage;
       } else {
-        const image = document.getElementById('imageBackground');
-        image.src = reader.result;
-        image.style.display = 'block';
-        document.getElementById('videoBackground').style.display = 'none';
-        localStorage.setItem(currentUser + '_bgType', 'image');
-        localStorage.setItem(currentUser + '_bgData', reader.result);
+        // Buscar logo según plataforma
+        const option = [...document.getElementById('platformSelect').options].find(o => o.value === acc.platform);
+        imgSrc = option ? option.getAttribute('data-logo') : '';
       }
+      if(imgSrc){
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        div.appendChild(img);
+      }
+
+      const nameText = acc.customName ? acc.customName : acc.platform;
+      div.appendChild(document.createTextNode(`${nameText} (${acc.email})`));
+      listDiv.appendChild(div);
+    });
+
+    document.getElementById('accountsModal').style.display = 'flex';
+  }
+  function closeAccountsModal(){
+    document.getElementById('accountsModal').style.display = 'none';
+  }
+
+  // Fondo - cargar y guardar
+  const videoBg = document.getElementById('videoBackground');
+  const imageBg = document.getElementById('imageBackground');
+
+  function applyBackground(){
+    if(!currentUser){
+      alert('Inicia sesión primero.');
+      return;
+    }
+    const bgOption = document.querySelector('input[name="bgOption"]:checked').value;
+    const fileInput = document.getElementById('bgFileInput');
+
+    if(fileInput.files.length === 0){
+      alert('Selecciona un archivo para el fondo');
+      return;
+    }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(evt){
+      const dataURL = evt.target.result;
+      // Guardar fondo en Firestore
+      db.collection('users').doc(currentUser.uid).set({
+        background: {
+          type: bgOption,
+          data: dataURL
+        }
+      }, {merge:true})
+      .then(() => {
+        setBackground(bgOption, dataURL);
+        alert('Fondo guardado');
+      })
+      .catch(err => alert('Error guardando fondo: ' + err.message));
     };
+
     reader.readAsDataURL(file);
   }
 
-  function loadBackground() {
-    const type = localStorage.getItem(currentUser + '_bgType');
-    const data = localStorage.getItem(currentUser + '_bgData');
-    if (type === 'video') {
-      const video = document.getElementById('videoBackground');
-      video.innerHTML = `<source src="${data}" type="video/mp4">`;
-      video.style.display = 'block';
-      document.getElementById('imageBackground').style.display = 'none';
-    } else if (type === 'image') {
-      const image = document.getElementById('imageBackground');
-      image.src = data;
-      image.style.display = 'block';
-      document.getElementById('videoBackground').style.display = 'none';
+  function setBackground(type, dataURL){
+    if(type === 'video'){
+      videoBg.src = dataURL;
+      videoBg.style.display = 'block';
+      imageBg.style.display = 'none';
+    } else {
+      imageBg.src = dataURL;
+      imageBg.style.display = 'block';
+      videoBg.style.display = 'none';
     }
   }
+
+  // Cargar fondo guardado al iniciar sesión
+  function loadBackgroundFromFirestore(){
+    db.collection('users').doc(currentUser.uid).get()
+    .then(doc => {
+      if(doc.exists){
+        const bg = doc.data().background;
+        if(bg){
+          setBackground(bg.type, bg.data);
+        } else {
+          // Por defecto video oculto
+          videoBg.style.display = 'none';
+          imageBg.style.display = 'none';
+        }
+      }
+    });
+  }
+
+  // Limpiar UI al cerrar sesión
+  function clearUI(){
+    window.savedAccounts = [];
+    document.getElementById('modalAccountsList').innerHTML = '';
+    videoBg.style.display = 'none';
+    imageBg.style.display = 'none';
+  }
 </script>
+
 </body>
 </html>
